@@ -23,7 +23,7 @@ class CheckFailed(Exception):
 
 def puppet_checker(path):
     """Check syntax of puppet manifests"""
-    cmd = ['puppet', '--color=false', '--noop', '--vardir=/tmp', '--confdir=/tmp', '--parseonly', path]
+    cmd = ['puppet', 'parser', 'validate', '--color=false', '--noop', '--vardir=/tmp', '--confdir=/tmp', path]
     popen = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output = popen.communicate()
     if popen.returncode:
