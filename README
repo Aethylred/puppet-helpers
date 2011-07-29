@@ -5,6 +5,8 @@ update: git update hook to check syntax of puppet manifest, erb and ruby.
         Useful to reject pushs with broken syntax on the server.
 
 To use the hooks copy (or symlink) it into your .git/hooks including the
-puppethooks/ dir. 
+puppethooks/ dir or initialize the repo with 
+
+	git init --template <path to puppet-helpers checkout>
 
 Report bugs to Guido Günther <agx@sigxcpu.org>
