@@ -46,7 +46,7 @@ def diff_cached(rev):
 
 def verify_rev(rev):
     """Verify ref, return True if it's o.k."""
-    return not subprocess.call(['git', 'rev-parse', '--verify', rev])
+    return not subprocess.call(['git', 'rev-parse', '-q', '--verify', rev])
 
 
 def write_tmp_blob(dir, name, sha):
