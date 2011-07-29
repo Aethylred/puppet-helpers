@@ -1,0 +1,61 @@
+#!/usr/bin/python -u
+# vim: set fileencoding=utf-8 :
+
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import puppethooks.git as git
+import puppethooks.checkers as checkers
+
+debug = True
+
+def main(argv):
+    tmpdir = None
+    ret = 0
+    zero = '0000000000000000000000000000000000000000'
+
+    try:
+        os.environ['GIT_DIR']
+    except KeyError:
+        print >>sys.stderr, "Don't run this script from the command line."
+        sys.exit(1)
+
+    refname, oldrev, newrev = sys.argv[1:4]
+    if zero in [oldrev, newrev]:
+        return 0
+
+    print "Checking files syntax."
+    try:
+        tmpdir = tempfile.mkdtemp()
+
+        for old_mode, new_mode, old_sha, new_sha, status, name in git.diff_tree(oldrev, newrev):
+            if new_sha == zero:
+                continue
+
+            try:
+                extension = name.rsplit('.',1)[-1]
+            except IndexError:
+                continue
+
+            try:
+                if debug:
+                    print "Checking %s" % name
+                git.do_check(name, tmpdir, new_sha)
+            except KeyError:
+                continue
+            except checkers.CheckFailed:
+                print >>sys.stderr, "Syntax check of '%s' failed" % name
+                ret = 1
+    finally:
+        if tmpdir:
+            shutil.rmtree(tmpdir)
+
+    print "Checking files syntax done. %s" % ["", "Will deny commit due to errors."][ret]
+    return ret
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
+
+# vim:et:ts=4:sw=4:et:sts=4:ai:set list listchars=tab\:»·,trail\:·:
