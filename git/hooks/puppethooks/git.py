@@ -35,7 +35,9 @@ def diff_tree(oldrev, newrev):
 def diff_cached(rev):
     """Check the index against the given commit"""
     # We use -z to handle filenames with spaces, tabs, etc.
-    cmd = ['git', 'diff', '--cached', '--diff-filter=AM', '--raw', '-z', rev ]
+    cmd = ['git', 'diff', '--cached', '--diff-filter=AM', '--raw', '-z' ]
+    if rev:
+        cmd.append(rev)
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     # Parse the '\0' terminated filenames out of the metadata
     output = popen.communicate()[0].split('\0')

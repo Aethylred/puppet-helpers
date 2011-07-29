@@ -27,7 +27,6 @@ debug = True
 
 def main():
     ret = 0
-    zero = '0000000000000000000000000000000000000000'
 
     try:
         os.environ['GIT_DIR']
@@ -37,7 +36,7 @@ def main():
 
     rev = 'HEAD'
     if not git.verify_rev(rev):
-        rev=zero
+        rev=None
 
     for old_mode, new_mode, old_sha, new_sha, status, name in git.diff_cached(rev):
         if debug:
