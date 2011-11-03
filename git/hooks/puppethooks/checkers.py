@@ -17,13 +17,36 @@
 
 import subprocess
 
+puppet_version = None
+
 class CheckFailed(Exception):
     def __init__(self, error, path, details=None):
         self.args = (error, path, details)
 
+def get_puppet_version():
+    global puppet_version
+
+    popen = subprocess.Popen(["puppet", "--version"],
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    output = popen.communicate()
+    if popen.returncode:
+        puppet_version = 0
+    else:
+        ma, mi, rel = output[0].split('.')
+        puppet_version = int(ma) * 1000 + int(mi) * 100 + int(rel)
+
 def puppet_checker(path):
     """Check syntax of puppet manifests"""
-    cmd = ['puppet', 'parser', 'validate', '--color=false', '--noop', '--vardir=/tmp', '--confdir=/tmp', path]
+    if puppet_version == None:
+        get_puppet_version()
+
+    if puppet_version >= 2700:
+        cmd = ['puppet', 'parser', 'validate', '--color=false',
+               '--noop', '--vardir=/tmp', '--confdir=/tmp', path]
+    else:
+        cmd = ['puppet', '--color=false', '--noop', '--vardir=/tmp',
+               '--confdir=/tmp', '--parseonly', path]
+
     popen = subprocess.Popen(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output = popen.communicate()
     if popen.returncode:
