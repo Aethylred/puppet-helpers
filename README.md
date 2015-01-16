@@ -30,7 +30,11 @@ This git update hook to check syntax of puppet manifest, erb and ruby. Useful to
 
 ## `post-recieve`
 
-This git post-recieve hook will attempt to remotely login as the puppet user on a puppet master via SSH and update the environment matching the git branch. Note that he master branch is mapped to the production environment. The update process will:
+This git post-recieve hook will attempt to remotely login as the puppet user on a puppet master via SSH and update the environment matching the git branch. Note that he master branch is mapped to the production environment.
+
+This hook must be edited and updated for your environment to set the puppet host and the git repository URI.
+
+The update process will:
 
 * delete the environment if a branch is deleted
 * clone the branch into the environment if it does not exist

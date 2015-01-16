@@ -9,18 +9,22 @@
 # directory after the git update/clone.
 read oldrev newrev refname
 
+# CHANGE THESE! They need to match your environment.
 # Read URLs are recommended as they don't require authentication
 REPO="https:git.example.org/puppet.git"
 BRANCH=`echo $refname | sed -n 's/^refs\/heads\///p'`
 PUPPET_ENV_DIR="/etc/puppet/environments"
 SSH_DEST="puppet@puppet.example.org"
 
+echo 'Running post-receive hook to push changes to Puppetmaster'
+
 # Mapping the master branch to the production environment
 if [ "$BRANCH" = "master" ]
 then
-  echo "$BRANCH is master, remapping"
+  echo "Branch is master, mapping to production"
   BRANCH_REAL="production"
 elif [ "$BRANCH" = "production" ]
+then
   echo "FATAL: production environment is reserved for the master branch and will not be pushed to the puppetmaster"
   exit 1
 else
@@ -40,21 +44,21 @@ cd $PUPPET_ENV_DIR && rm -rf $BRANCH_REAL
 EOF
 else
   # branch is being updated
-  echo "Updating remote branch $PUPPET_ENV_DIR/$BRANCH_REAL"
-  ssh $SSH_DEST /bin/sh <<-EOF
+  echo "Updating remote branch $PUPPET_ENV_DIR/$BRANCH_REAL on $SSH_DEST"
+  ssh $SSH_DEST /bin/sh <<EOF
 { cd $PUPPET_ENV_DIR/$BRANCH_REAL \
+&& git reset --hard \
 && git pull origin $BRANCH \
 && git submodule sync \
-&& git submodule update --init --recursive\
-&& cd $BRANCH_REAL \
-&& { -f Puppetfile && librarian-puppet update ; } \
-|| echo 'No Puppetfile, skipping librarian-puppet' ; } \
-|| { mkdir -p $PUPPET_ENV_DIR && cd $BRANCH_DIR \
-&& git clone -b $BRANCH $REPO $BRANCH_REAL --recursive \
-&& cd $BRANCH_REAL \
-&& { -f Puppetfile && librarian-puppet install --clean ; }
-|| echo 'No Puppetfile, skipping librarian-puppet' ; }
+&& git submodule update --init --recursive ; }\
+|| { cd $PUPPET_ENV_DIR \
+&& git clone -b $BRANCH $REPO $BRANCH_REAL --recursive ; }
+echo 'Checking Puppetfile'
+cd $PUPPET_ENV_DIR/$BRANCH_REAL
+/usr/local/dynaguppy/bin/librarian-puppet-helper.sh /
+|| echo 'WARNING: librarian-puppet helper script failed!'
 EOF
+  echo "Update completed."
 fi
 
 exit $?
